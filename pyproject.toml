@@ -1,0 +1,14 @@
+[project]
+name = "transcribe"
+version = "0.1.0"
+description = "Local video transcription using CohereLabs/cohere-transcribe-03-2026"
+requires-python = ">=3.12"
+dependencies = [
+    "accelerate>=1.13.0",
+    "librosa>=0.11.0",
+    "protobuf>=7.35.0",
+    "sentencepiece>=0.2.1",
+    "soundfile>=0.13.1",
+    "torch>=2.12.0",
+    "transformers>=5.4.0",
+]
