@@ -152,12 +152,8 @@ if __name__ == "__main__":
             print()
         sys.exit(0)
 
-    print("Checking all transcripts on account...")
-    all_items = list_transcripts(token, debug=True)
-    print(f"Total transcripts on account: {len(all_items)}")
-
-    print(f"Fetching transcripts for meeting {meeting_id}...")
-    items = list_transcripts(token, meeting_id, debug=True)
+    print(f"Fetching closed captions for meeting {meeting_id}...")
+    items = list_closed_captions(token, meeting_id, debug=True)
 
     if not items:
         print("No captions or transcripts found for this meeting.")
