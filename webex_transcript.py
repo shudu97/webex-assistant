@@ -8,6 +8,7 @@ load_dotenv()
 
 WEBEX_TOKEN_URL = "https://webexapis.com/v1/access_token"
 WEBEX_TRANSCRIPTS_URL = "https://webexapis.com/v1/meetingTranscripts"
+WEBEX_MEETINGS_URL = "https://webexapis.com/v1/meetings"
 
 
 def get_token(client_id: str, client_secret: str) -> str:
@@ -21,6 +22,16 @@ def get_token(client_id: str, client_secret: str) -> str:
     return resp.json()["access_token"]
 
 
+def list_meetings(token: str) -> list:
+    resp = requests.get(
+        WEBEX_MEETINGS_URL,
+        params={"meetingType": "meeting", "state": "ended"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    resp.raise_for_status()
+    return resp.json().get("items", [])
+
+
 def list_transcripts(token: str, meeting_id: str = None) -> list:
     params = {"meetingId": meeting_id} if meeting_id else {}
     resp = requests.get(
@@ -28,7 +39,6 @@ def list_transcripts(token: str, meeting_id: str = None) -> list:
         params=params,
         headers={"Authorization": f"Bearer {token}"},
     )
-    print(f"API status: {resp.status_code}  response: {resp.text[:300]}")
     resp.raise_for_status()
     return resp.json().get("items", [])
 
@@ -54,7 +64,17 @@ if __name__ == "__main__":
     raw_vtt = "--vtt" in sys.argv
 
     if not meeting_id:
-        print("No meeting ID given — listing all available transcripts...")
+        print("No meeting ID given — listing all ended meetings...")
+        meetings = list_meetings(token)
+        if not meetings:
+            print("No ended meetings found.")
+            sys.exit(0)
+        print(f"Found {len(meetings)} meeting(s):\n")
+        for m in meetings:
+            print(f"  ID: {m['id']}")
+            print(f"  Topic: {m.get('title', 'N/A')}  —  {m.get('start', 'N/A')}")
+            print()
+        sys.exit(0)
 
     # Personal access token takes priority (get it from developer.webex.com)
     token = os.environ.get("WEBEX_TOKEN")
