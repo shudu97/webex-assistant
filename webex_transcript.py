@@ -28,6 +28,7 @@ def list_transcripts(token: str, meeting_id: str = None) -> list:
         params=params,
         headers={"Authorization": f"Bearer {token}"},
     )
+    print(f"API status: {resp.status_code}  response: {resp.text[:300]}")
     resp.raise_for_status()
     return resp.json().get("items", [])
 
