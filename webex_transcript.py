@@ -8,6 +8,7 @@ load_dotenv()
 
 WEBEX_TOKEN_URL = "https://webexapis.com/v1/access_token"
 WEBEX_TRANSCRIPTS_URL = "https://webexapis.com/v1/meetingTranscripts"
+WEBEX_CC_URL = "https://webexapis.com/v1/meetingClosedCaptions"
 WEBEX_MEETINGS_URL = "https://webexapis.com/v1/meetings"
 
 
@@ -28,6 +29,19 @@ def list_meetings(token: str) -> list:
         params={"meetingType": "meeting", "state": "ended"},
         headers={"Authorization": f"Bearer {token}"},
     )
+    resp.raise_for_status()
+    return resp.json().get("items", [])
+
+
+def list_closed_captions(token: str, meeting_id: str, debug: bool = False) -> list:
+    resp = requests.get(
+        WEBEX_CC_URL,
+        params={"meetingId": meeting_id},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    if debug:
+        print(f"CC Status: {resp.status_code}")
+        print(f"CC Response: {resp.text}")
     resp.raise_for_status()
     return resp.json().get("items", [])
 
@@ -92,11 +106,15 @@ if __name__ == "__main__":
             print()
         sys.exit(0)
 
-    print(f"Fetching transcripts for meeting {meeting_id}...")
-    items = list_transcripts(token, meeting_id, debug=True)
+    print(f"Fetching closed captions for meeting {meeting_id}...")
+    items = list_closed_captions(token, meeting_id, debug=True)
 
     if not items:
-        print("No transcripts found. Make sure CC was enabled during the meeting and it has ended.")
+        print("No closed captions found, trying transcripts API...")
+        items = list_transcripts(token, meeting_id, debug=True)
+
+    if not items:
+        print("No captions or transcripts found for this meeting.")
         sys.exit(0)
 
     print(f"Found {len(items)} transcript(s).\n")
