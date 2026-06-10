@@ -63,19 +63,6 @@ if __name__ == "__main__":
     meeting_id = next((a for a in sys.argv[1:] if not a.startswith("--")), None)
     raw_vtt = "--vtt" in sys.argv
 
-    if not meeting_id:
-        print("No meeting ID given — listing all ended meetings...")
-        meetings = list_meetings(token)
-        if not meetings:
-            print("No ended meetings found.")
-            sys.exit(0)
-        print(f"Found {len(meetings)} meeting(s):\n")
-        for m in meetings:
-            print(f"  ID: {m['id']}")
-            print(f"  Topic: {m.get('title', 'N/A')}  —  {m.get('start', 'N/A')}")
-            print()
-        sys.exit(0)
-
     # Personal access token takes priority (get it from developer.webex.com)
     token = os.environ.get("WEBEX_TOKEN")
     if token:
@@ -89,8 +76,20 @@ if __name__ == "__main__":
         print("Authenticating with service app credentials...")
         token = get_token(client_id, client_secret)
 
-    if meeting_id:
-        print(f"Fetching transcripts for meeting {meeting_id}...")
+    if not meeting_id:
+        print("No meeting ID given — listing all ended meetings...")
+        meetings = list_meetings(token)
+        if not meetings:
+            print("No ended meetings found.")
+            sys.exit(0)
+        print(f"Found {len(meetings)} meeting(s):\n")
+        for m in meetings:
+            print(f"  ID: {m['id']}")
+            print(f"  Topic: {m.get('title', 'N/A')}  —  {m.get('start', 'N/A')}")
+            print()
+        sys.exit(0)
+
+    print(f"Fetching transcripts for meeting {meeting_id}...")
     items = list_transcripts(token, meeting_id)
 
     if not items:
