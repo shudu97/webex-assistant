@@ -34,22 +34,15 @@ class CallbackHandler(BaseHTTPRequestHandler):
         pass
 
 
-def oauth_login(client_id: str, client_secret: str) -> str:
+def oauth_login(auth_url: str, client_id: str, client_secret: str) -> str:
     global _auth_code
-    params = urllib.parse.urlencode({
-        "client_id": client_id,
-        "response_type": "code",
-        "redirect_uri": REDIRECT_URI,
-        "scope": SCOPES,
-    })
-    url = f"{WEBEX_AUTH_URL}?{params}"
 
     server = HTTPServer(("127.0.0.1", 8050), CallbackHandler)
     thread = threading.Thread(target=server.handle_request)
     thread.start()
 
-    print(f"Opening browser for authorization...")
-    webbrowser.open(url)
+    print("Opening browser for authorization...")
+    webbrowser.open(auth_url)
     thread.join(timeout=120)
     server.server_close()
 
@@ -128,10 +121,11 @@ if __name__ == "__main__":
     client_secret = os.environ.get("WEBEX_CLIENT_SECRET")
 
     if do_auth:
-        if not client_id or not client_secret:
-            print("Error: WEBEX_CLIENT_ID and WEBEX_CLIENT_SECRET must be set in .env")
+        auth_url = os.environ.get("WEBEX_OAUTH_URL")
+        if not auth_url or not client_id or not client_secret:
+            print("Error: WEBEX_OAUTH_URL, WEBEX_CLIENT_ID, and WEBEX_CLIENT_SECRET must be set in .env")
             sys.exit(1)
-        token = oauth_login(client_id, client_secret)
+        token = oauth_login(auth_url, client_id, client_secret)
         env_path = os.path.join(os.path.dirname(__file__), ".env")
         set_key(env_path, "WEBEX_TOKEN", token)
         print("Token saved to .env as WEBEX_TOKEN.")
