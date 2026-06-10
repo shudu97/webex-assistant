@@ -32,13 +32,16 @@ def list_meetings(token: str) -> list:
     return resp.json().get("items", [])
 
 
-def list_transcripts(token: str, meeting_id: str = None) -> list:
+def list_transcripts(token: str, meeting_id: str = None, debug: bool = False) -> list:
     params = {"meetingId": meeting_id} if meeting_id else {}
     resp = requests.get(
         WEBEX_TRANSCRIPTS_URL,
         params=params,
         headers={"Authorization": f"Bearer {token}"},
     )
+    if debug:
+        print(f"Status: {resp.status_code}")
+        print(f"Response: {resp.text}")
     resp.raise_for_status()
     return resp.json().get("items", [])
 
@@ -90,7 +93,7 @@ if __name__ == "__main__":
         sys.exit(0)
 
     print(f"Fetching transcripts for meeting {meeting_id}...")
-    items = list_transcripts(token, meeting_id)
+    items = list_transcripts(token, meeting_id, debug=True)
 
     if not items:
         print("No transcripts found. Make sure CC was enabled during the meeting and it has ended.")
