@@ -1,24 +1,36 @@
 #!/usr/bin/env python3
-import sys
-import subprocess
-import tempfile
 import os
+import subprocess
+import sys
+import tempfile
+
+from transformers import AutoProcessor, CohereAsrForConditionalGeneration
+from transformers.audio_utils import load_audio
+
 
 def extract_audio(video_path: str, out_wav: str):
     """Extract audio from video to 16kHz mono WAV using ffmpeg."""
     subprocess.run(
         [
-            "ffmpeg", "-y", "-i", video_path,
-            "-ar", "16000", "-ac", "1", "-f", "wav", out_wav,
+            "ffmpeg",
+            "-y",
+            "-i",
+            video_path,
+            "-ar",
+            "16000",
+            "-ac",
+            "1",
+            "-f",
+            "wav",
+            out_wav,
         ],
         check=True,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
 
+
 def transcribe(video_path: str, language: str = "en") -> str:
-    from transformers import AutoProcessor, CohereAsrForConditionalGeneration
-    from transformers.audio_utils import load_audio
 
     model_id = "CohereLabs/cohere-transcribe-03-2026"
 
@@ -37,7 +49,9 @@ def transcribe(video_path: str, language: str = "en") -> str:
 
         print("Transcribing...")
         audio = load_audio(tmp_path, sampling_rate=16000)
-        inputs = processor(audio, sampling_rate=16000, return_tensors="pt", language=language)
+        inputs = processor(
+            audio, sampling_rate=16000, return_tensors="pt", language=language
+        )
         inputs = inputs.to(model.device, dtype=model.dtype)
 
         outputs = model.generate(**inputs, max_new_tokens=512)
@@ -45,6 +59,7 @@ def transcribe(video_path: str, language: str = "en") -> str:
         return text
     finally:
         os.unlink(tmp_path)
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
